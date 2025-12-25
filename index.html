@@ -1,0 +1,583 @@
+<!--
+
+Copyright 2025 fzmanrique
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iLab AI Declaration Generator</title>
+    <style>
+      :root {
+        /* Source: #ED4AA1 */
+        --bg-color: #1c1015;
+        --panel-bg: #291c21;
+        --border-color: #574149;
+        --text-main: #f4dce4;
+        --text-muted: #debec9;
+
+        --accent-primary: #ffafd0;
+        --on-accent-primary: #63003d;
+        --accent-secondary: #e1bdca;
+
+        --input-bg: #34262b;
+        --focus-ring: #ffafd0; /* High contrast focus color */
+        
+        --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: var(--font-family);
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+        line-height: 1.5;
+        color-scheme: dark;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 900px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* Utility: Screen Reader Only Class */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Header */
+      header {
+        margin-bottom: 10px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+        position: relative;
+      }
+
+      header::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background-color: var(--accent-secondary);
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .subtitle {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Main Grid */
+      .generator-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+      }
+
+      @media (max-width: 768px) {
+        .generator-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Panels */
+      .panel {
+        background: var(--panel-bg);
+        padding: 20px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel.output h2 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      /* Form Elements */
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      select,
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      /* Accessible Focus States */
+      select:focus-visible,
+      input[type="text"]:focus-visible,
+      textarea:focus-visible,
+      button:focus-visible,
+      input[type="checkbox"]:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+        border-color: var(--accent-primary);
+      }
+
+      /* Hidden Inputs Container */
+      .hidden-input {
+        margin-top: 10px;
+        display: none;
+      }
+
+      /* Checkboxes */
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      /* Changed from div to label for A11y */
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.2s;
+      }
+
+      .checkbox-item:hover {
+        background: var(--border-color);
+      }
+      
+      /* Active state handled by JS class for styling, but input handles logic */
+      .checkbox-item.active {
+        background: var(--input-bg);
+        border-color: var(--accent-primary);
+      }
+
+      input[type="checkbox"] {
+        margin-right: 10px;
+        accent-color: var(--accent-primary);
+        width: 16px;
+        height: 16px;
+      }
+
+      .checkbox-label {
+        font-size: 0.9rem;
+        user-select: none;
+      }
+
+      /* Output Area */
+      .output-wrapper {
+        display: flex;
+        height: 100%;
+        position: relative;
+      }
+      
+      textarea {
+        height: 100%;
+        width: 100%;
+        min-height: 250px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-family: "SF Mono", Consolas, "Courier New", monospace;
+        padding: 15px;
+        border-radius: 6px;
+        resize: none;
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+
+      .copy-btn {
+        background: var(--accent-primary);
+        color: var(--on-accent-primary);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: background 0.2s, transform 0.1s;
+      }
+
+      .copy-btn:hover {
+        background: var(--accent-secondary);
+      }
+      
+      .copy-btn:active {
+        transform: scale(0.98);
+      }
+
+      /* Live Region for Screen Readers */
+      #statusRegion {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>iLab AI Declaration</h1>
+        <div class="subtitle">MSU Policy compliance generator</div>
+      </header>
+
+      <div class="generator-grid">
+        <!-- LEFT PANEL: INPUTS -->
+        <div class="panel forms">
+          <h2>Configuration</h2>
+
+          <div class="form-group">
+            <label for="assignmentSelect">Assignment type</label>
+            <select id="assignmentSelect" onchange="generateText()">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="llmSelect">AI tool used</label>
+            <select id="llmSelect" onchange="handleToolChange()">
+              <!-- Populated by JS -->
+            </select>
+            
+            <div id="otherToolContainer" class="hidden-input">
+              <label for="otherToolInput" class="sr-only">Enter custom AI tool name</label>
+              <input
+                type="text"
+                id="otherToolInput"
+                placeholder="Enter tool name..."
+                oninput="generateText()"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="purposeLabel">Purpose (select all that apply)</label>
+            <div class="checkbox-group" id="reasonsContainer" aria-labelledby="purposeLabel" aria-label="Select purposes for using AI" aria-role="checkbox-group">
+              <!-- Populated by JS -->
+            </div>
+            
+            <!-- Custom Reason Input -->
+            <div id="otherReasonContainer" class="hidden-input">
+              <label for="otherReasonInput" class="sr-only">Enter custom purpose</label>
+              <input
+                type="text"
+                id="otherReasonInput"
+                placeholder="Enter custom purpose..."
+                oninput="generateText()"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: OUTPUT -->
+        <div class="panel output">
+          <h2>
+            <span>Declaration output</span>
+            <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()" aria-label="Copy declaration to clipboard">
+              Copy
+            </button>
+          </h2>
+
+          <div class="output-wrapper">
+            <label for="outputText" class="sr-only">Generated Declaration Text</label>
+            <textarea id="outputText" readonly></textarea>
+            <!-- Hidden live region for screen reader announcements -->
+            <div id="statusRegion" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // DATA
+      // ==========================================
+      const data = {
+        assignments: [
+          {
+            id: "formal",
+            label: "Formal research, thesis, and capstone projects",
+          },
+          {
+            id: "standard",
+            label: "Essays, reflection papers, and other outputs",
+          },
+          { id: "code", label: "Programming or technical project" },
+          { id: "social", label: "Social media captions or blogs" },
+        ],
+        llms: [
+          "ChatGPT",
+          "Gemini",
+          "Claude",
+          "Microsoft Copilot",
+          "Grammarly",
+          "Quillbot",
+          "Perplexity",
+          "Other...",
+        ],
+        reasons: [
+          "Brainstorm initial ideas",
+          "Refine grammar and sentence structure",
+          "Check for spelling errors",
+          "Summarize reference materials",
+          "Generate an outline",
+          "Debug code snippets",
+          "Translate text",
+          "Other...",
+        ],
+      };
+
+      // ==========================================
+      // TEMPLATES
+      // ==========================================
+      const templates = {
+        formal: `Declaration of Generative AI and AI-assisted Technologies in the Writing Process\n\nDuring the preparation of this work the author(s) used {TOOL} in order to {REASON}. After using this tool/service, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the publication.`,
+
+        standard: `AI Declaration: This submission utilized {TOOL} to {REASON}. The final output was reviewed, verified, and edited by the student to ensure accuracy and originality in accordance with the MSU AI Policy.`,
+
+        code: `AI DECLARATION:\nTool Used: {TOOL}\nPurpose: Used to {REASON}.\nVerified manually by the developer.`,
+
+        social: `[AI Disclosure: Used {TOOL} to {REASON}. #EthicalAI]`,
+      };
+
+      // ==========================================
+      // LOGIC
+      // ==========================================
+
+      window.onload = function () {
+        renderOptions();
+        generateText();
+      };
+
+      function renderOptions() {
+        // Assignments
+        const assignSelect = document.getElementById("assignmentSelect");
+        data.assignments.forEach((item) => {
+          let option = document.createElement("option");
+          option.value = item.id;
+          option.text = item.label;
+          assignSelect.add(option);
+        });
+
+        // LLMs
+        const llmSelect = document.getElementById("llmSelect");
+        data.llms.forEach((item) => {
+          let option = document.createElement("option");
+          option.value = item;
+          option.text = item;
+          llmSelect.add(option);
+        });
+
+        // Reasons
+        const reasonContainer = document.getElementById("reasonsContainer");
+        data.reasons.forEach((item, index) => {
+          // Changed div to label for A11y
+          let labelContainer = document.createElement("label");
+          labelContainer.className = "checkbox-item";
+          // No onclick here; we rely on the input's change event
+          
+          let input = document.createElement("input");
+          input.type = "checkbox";
+          input.value = item;
+          input.id = "reason" + index;
+          
+          // Event listener for logic and styling
+          input.addEventListener('change', function() {
+             updateCheckboxStyle(this);
+             handleReasonChange(this);
+             generateText();
+          });
+
+          let span = document.createElement("span");
+          span.className = "checkbox-label";
+          span.innerText = item;
+
+          labelContainer.appendChild(input);
+          labelContainer.appendChild(span);
+          reasonContainer.appendChild(labelContainer);
+        });
+      }
+
+      function updateCheckboxStyle(input) {
+        const parent = input.parentElement;
+        if (input.checked) {
+          parent.classList.add("active");
+        } else {
+          parent.classList.remove("active");
+        }
+      }
+
+      function handleToolChange() {
+        const select = document.getElementById("llmSelect");
+        const otherInput = document.getElementById("otherToolContainer");
+        const inputField = document.getElementById("otherToolInput");
+
+        if (select.value === "Other...") {
+          otherInput.style.display = "block";
+          inputField.focus();
+        } else {
+          otherInput.style.display = "none";
+        }
+        generateText();
+      }
+
+      function handleReasonChange(checkbox) {
+        if (checkbox.value === "Other...") {
+          const otherInput = document.getElementById("otherReasonContainer");
+          const inputField = document.getElementById("otherReasonInput");
+          
+          if (checkbox.checked) {
+            otherInput.style.display = "block";
+            inputField.focus();
+          } else {
+            otherInput.style.display = "none";
+          }
+        }
+      }
+
+      function generateText() {
+        const assignmentType = document.getElementById("assignmentSelect").value;
+        let tool = document.getElementById("llmSelect").value;
+
+        // Handle Custom Tool
+        if (tool === "Other...") {
+          const customTool = document.getElementById("otherToolInput").value;
+          tool = customTool.trim() === "" ? "[INSERT TOOL NAME]" : customTool;
+        }
+
+        // Handle Reasons
+        const checkboxes = document.querySelectorAll(
+          '#reasonsContainer input[type="checkbox"]:checked'
+        );
+        let reasonsArray = [];
+
+        checkboxes.forEach((cb) => {
+          if (cb.value === "Other...") {
+            const customReason = document.getElementById("otherReasonInput").value;
+            if (customReason.trim() !== "") {
+              reasonsArray.push(customReason.toLowerCase());
+            }
+          } else {
+            reasonsArray.push(cb.value.toLowerCase());
+          }
+        });
+
+        // Format string
+        let reasonString = "[select a reason]";
+        if (reasonsArray.length > 0) {
+          if (reasonsArray.length === 1) {
+            reasonString = reasonsArray[0];
+          } else if (reasonsArray.length === 2) {
+            reasonString = reasonsArray.join(" and ");
+          } else {
+            const last = reasonsArray.pop();
+            reasonString = reasonsArray.join(", ") + ", and " + last;
+          }
+        }
+
+        // Get Template
+        let template = templates[assignmentType] || templates.formal;
+
+        // Replace Placeholders
+        let finalText = template
+          .replace(/{TOOL}/g, tool)
+          .replace(/{REASON}/g, reasonString);
+
+        document.getElementById("outputText").value = finalText;
+      }
+
+      function copyToClipboard() {
+        const copyText = document.getElementById("outputText");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+
+        navigator.clipboard.writeText(copyText.value).then(() => {
+          const copyBtn = document.getElementById("copyBtn");
+          const statusRegion = document.getElementById("statusRegion");
+          
+          // Visual Feedback
+          const originalText = copyBtn.innerText;
+          copyBtn.innerText = "Copied!";
+          
+          // Screen Reader Feedback
+          statusRegion.innerText = "Declaration text copied to clipboard.";
+
+          setTimeout(() => {
+            copyBtn.innerText = originalText;
+            statusRegion.innerText = ""; // Clear status
+          }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>
