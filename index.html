@@ -183,6 +183,27 @@ limitations under the License.
         border-color: var(--accent-primary);
       }
 
+      select,
+      ::picker(select) {
+        appearance: base-select;
+      }
+
+      ::picker(select) {
+        background: var(--bg-color);
+        border: none;
+        border-radius: 6px;
+      }
+
+      select option {
+        background: var(--bg-color);
+        padding: 4px 10px;
+        transition: 0.4s;
+      }
+
+      select option:hover {
+        background: var(--panel-bg);
+      }
+
       /* Hidden Inputs Container */
       .hidden-input {
         margin-top: 10px;
