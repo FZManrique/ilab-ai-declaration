@@ -1,20 +1,3 @@
-<!--
-
-Copyright 2025 fzmanrique
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
--->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -177,10 +160,12 @@ limitations under the License.
       input[type="text"]:focus-visible,
       textarea:focus-visible,
       button:focus-visible,
-      input[type="checkbox"]:focus-visible {
+      input[type="checkbox"]:focus-visible,
+      a:focus-visible {
         outline: 2px solid var(--focus-ring);
         outline-offset: 2px;
         border-color: var(--accent-primary);
+        border-radius: 2px;
       }
 
       select,
@@ -303,6 +288,28 @@ limitations under the License.
         overflow: hidden;
         clip: rect(0,0,0,0);
       }
+
+      /* FOOTER STYLES */
+      footer {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      footer a {
+        color: var(--accent-primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: opacity 0.2s;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+        opacity: 0.8;
+      }
     </style>
   </head>
   <body>
@@ -313,22 +320,19 @@ limitations under the License.
       </header>
 
       <div class="generator-grid">
-        <!-- LEFT PANEL: INPUTS -->
         <div class="panel forms">
           <h2>Configuration</h2>
 
           <div class="form-group">
             <label for="assignmentSelect">Assignment type</label>
             <select id="assignmentSelect" onchange="generateText()">
-              <!-- Populated by JS -->
-            </select>
+              </select>
           </div>
 
           <div class="form-group">
             <label for="llmSelect">AI tool used</label>
             <select id="llmSelect" onchange="handleToolChange()">
-              <!-- Populated by JS -->
-            </select>
+              </select>
             
             <div id="otherToolContainer" class="hidden-input">
               <label for="otherToolInput" class="sr-only">Enter custom AI tool name</label>
@@ -344,10 +348,8 @@ limitations under the License.
           <div class="form-group">
             <label id="purposeLabel">Purpose (select all that apply)</label>
             <div class="checkbox-group" id="reasonsContainer" aria-labelledby="purposeLabel" aria-label="Select purposes for using AI" aria-role="checkbox-group">
-              <!-- Populated by JS -->
-            </div>
+              </div>
             
-            <!-- Custom Reason Input -->
             <div id="otherReasonContainer" class="hidden-input">
               <label for="otherReasonInput" class="sr-only">Enter custom purpose</label>
               <input
@@ -360,7 +362,6 @@ limitations under the License.
           </div>
         </div>
 
-        <!-- RIGHT PANEL: OUTPUT -->
         <div class="panel output">
           <h2>
             <span>Declaration output</span>
@@ -372,11 +373,18 @@ limitations under the License.
           <div class="output-wrapper">
             <label for="outputText" class="sr-only">Generated Declaration Text</label>
             <textarea id="outputText" readonly></textarea>
-            <!-- Hidden live region for screen reader announcements -->
             <div id="statusRegion" aria-live="polite"></div>
           </div>
         </div>
       </div>
+
+      <footer>
+        <p>
+          Missing a tool or assignment type? 
+          <a href="https://forms.gle/3x76yyeQrHaBYarw9" target="_blank" rel="noopener noreferrer">Submit Feedback</a>
+        </p>
+      </footer>
+
     </div>
 
     <script>
@@ -394,6 +402,8 @@ limitations under the License.
             label: "Essays, reflection papers, and other outputs",
           },
           { id: "code", label: "Programming or technical project" },
+          { id: "creative", label: "Creative writing or storytelling" },
+          { id: "presentation", label: "Presentation or Slide Deck" },
           { id: "social", label: "Social media captions or blogs" },
         ],
         llms: [
@@ -401,9 +411,13 @@ limitations under the License.
           "Gemini",
           "Claude",
           "Microsoft Copilot",
-          "Grammarly",
-          "Quillbot",
+          "Notion AI",
+          "Jasper",
           "Perplexity",
+          "GitHub Copilot",
+          "Quillbot",
+          "Grammarly",
+          "Basic Spellcheck",
           "Other...",
         ],
         reasons: [
@@ -412,11 +426,21 @@ limitations under the License.
           "Check for spelling errors",
           "Summarize reference materials",
           "Generate an outline",
+          "Format references/citations",
+          "Explain complex concepts",
           "Debug code snippets",
+          "Generate images or visual media",
           "Translate text",
           "Other...",
         ],
       };
+      
+      // Define tools that do not require declaration
+      const simpleTools = [
+        "Quillbot", 
+        "Grammarly", 
+        "Basic Spellcheck"
+      ];
 
       // ==========================================
       // TEMPLATES
@@ -427,6 +451,10 @@ limitations under the License.
         standard: `AI Declaration: This submission utilized {TOOL} to {REASON}. The final output was reviewed, verified, and edited by the student to ensure accuracy and originality in accordance with the MSU AI Policy.`,
 
         code: `AI DECLARATION:\nTool Used: {TOOL}\nPurpose: Used to {REASON}.\nVerified manually by the developer.`,
+        
+        creative: `AI Usage Disclosure: Portions of this creative work were assisted by {TOOL} to {REASON}. The final narrative and creative direction remain the author's own.`,
+        
+        presentation: `Transparency Note: {TOOL} was used during the creation of this presentation to {REASON}.`,
 
         social: `[AI Disclosure: Used {TOOL} to {REASON}. #EthicalAI]`,
       };
@@ -474,9 +502,9 @@ limitations under the License.
           
           // Event listener for logic and styling
           input.addEventListener('change', function() {
-             updateCheckboxStyle(this);
-             handleReasonChange(this);
-             generateText();
+              updateCheckboxStyle(this);
+              handleReasonChange(this);
+              generateText();
           });
 
           let span = document.createElement("span");
@@ -534,6 +562,12 @@ limitations under the License.
         if (tool === "Other...") {
           const customTool = document.getElementById("otherToolInput").value;
           tool = customTool.trim() === "" ? "[INSERT TOOL NAME]" : customTool;
+        }
+
+        // CHECK: Is this a simple tool?
+        if (simpleTools.includes(tool)) {
+            document.getElementById("outputText").value = "You do not need to declare as you just used simple tools.";
+            return; // Exit function immediately
         }
 
         // Handle Reasons
